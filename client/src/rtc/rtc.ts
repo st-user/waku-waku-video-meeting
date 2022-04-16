@@ -200,7 +200,14 @@ class ConnectionHandler {
 			audio: true
 		});
 
-		data.srcObject = stream;
+		
+		const myVideo = stream.getVideoTracks()[0];
+		if (!myVideo) {
+			throw Error('Video track does not exist.');
+		}
+		data.srcObject = new MediaStream( [ myVideo ]);
+		
+
 		stream.getTracks()
 			.forEach(track => pc.addTrack(track, stream));
 
