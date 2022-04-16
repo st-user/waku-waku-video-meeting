@@ -64,6 +64,10 @@ struct NameResponse {
 async fn main() {
     dotenv().ok();
     logger::init_logger();
+    let port: u16 = std::env::var("PORT")
+        .expect("PORT must be specified.")
+        .parse()
+        .expect("Invalid port number.");
 
     let db_pool = data::create_db_pool();
 
@@ -103,11 +107,11 @@ async fn main() {
         );
 
     let route = ice_servers
-                    .or(member_name)
-                    .or(subscribe)
-                    .recover(handle_rejection);
+        .or(member_name)
+        .or(subscribe)
+        .recover(handle_rejection);
 
-    warp::serve(route).run(([0, 0, 0, 0], 8082)).await;
+    warp::serve(route).run(([0, 0, 0, 0], port)).await;
 }
 
 fn with_db(

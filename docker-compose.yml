@@ -1,0 +1,17 @@
+version: '2'
+
+services:
+  auth:
+    image: waku-waku-auth
+    env_file:
+      - ./auth/.env
+  client:
+    image: waku-waku-client
+    ports:
+      - 8080:80
+  db:
+    image: waku-waku-db
+  sfu:
+    image: waku-waku-sfu
+    env_file:
+      - ./sfu/.env

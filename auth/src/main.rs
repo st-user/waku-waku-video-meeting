@@ -19,6 +19,10 @@ mod logger;
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
     logger::init_logger();
+    let port: u16 = std::env::var("PORT")
+        .expect("PORT must be specified.")
+        .parse()
+        .expect("Invalid port number.");
 
     let db_url = env::var("DB_URL").expect("DB_URL must be specified.");
     auth::check_env();
@@ -51,7 +55,7 @@ async fn main() -> std::io::Result<()> {
             )
 
     })
-    .bind(("0.0.0.0", 8081))?
+    .bind(("0.0.0.0", port))?
     .run()
     .await
 }
