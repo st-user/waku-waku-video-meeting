@@ -49,6 +49,8 @@ pub enum SubscriberMessageType {
     Offer,
     Answer,
     IceCandidate,
+    Ping,
+    Pong
 }
 #[derive(Serialize, Debug)]
 pub struct ToSubscriberDataChannelMessage {
@@ -562,6 +564,17 @@ pub async fn handle_start_message(
         info!("Add a track {:?} to {:?}.", track_id, peer_id);
     }
     do_offer(pc, tx_ws).await?;
+
+    Ok(())
+}
+
+/// Responds to Ping message.
+/// 
+pub fn handle_ping(tx_ws: UnboundedSender<warp::ws::Message>) -> Result<(), ApplicationError> {
+
+    tx_ws.send(Message::text(format!("{{
+        \"msg_type\": \"{:?}\"
+    }}", SubscriberMessageType::Pong)))?;
 
     Ok(())
 }

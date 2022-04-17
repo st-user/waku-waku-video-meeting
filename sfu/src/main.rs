@@ -487,11 +487,18 @@ async fn handle_peer_delegate(
                         error!("{:?} on {:?}", e, peer_id);
                     }
                 }
+                SubscriberMessageType::Ping => {
+                    if let Err(e) = handler::handle_ping(tx_ws_facade_for_prepare) {
+                        error!("{:?} on {:?}", e, peer_id);
+                    }
+                    continue;
+                }
                 SubscriberMessageType::Offer => {
-                    error!(
-                        "Receiving offers is currently not supported ({:?}).",
-                        peer_id
-                    );
+                    handle_unsupported_message_type(&msg.msg_type, &peer_id);
+                    continue;
+                }
+                SubscriberMessageType::Pong => {
+                    handle_unsupported_message_type(&msg.msg_type, &peer_id);
                     continue;
                 }
             }
@@ -514,6 +521,13 @@ async fn handle_peer_delegate(
     }
 
     Ok(())
+}
+
+fn handle_unsupported_message_type(msg_type: &SubscriberMessageType, peer_id: &Uuid) {
+    error!(
+        "Receiving {:?} is currently not supported ({:?}).",
+        msg_type, peer_id
+    );
 }
 
 async fn new_base_peer_connection() -> Result<RTCPeerConnection, webrtc::Error> {

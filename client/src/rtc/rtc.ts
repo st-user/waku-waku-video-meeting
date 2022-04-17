@@ -13,6 +13,8 @@ enum SubscriberMessageType {
 	Start = 'Start',
 	Prepare = 'Prepare',
 	IceCandidate = 'IceCandidate',
+	Ping = 'Ping',
+	Pong = 'Pong',
 }
 
 interface SubscriberMessage {
@@ -21,6 +23,7 @@ interface SubscriberMessage {
 }
 
 const VIDEO_HEIGHT_RATIO = 0.25;
+const PING_INTERVAL_MILLIS = 3000;
 
 class ConnectionHandler {
 	
@@ -65,11 +68,21 @@ class ConnectionHandler {
 			);
 		});
 
+		const sendPing = () => {
+			const msg: SubscriberMessage = {
+				msg_type: SubscriberMessageType.Ping,
+				message: ''
+			};
+			this.sendMessage(JSON.stringify(msg));
+			setTimeout(sendPing, PING_INTERVAL_MILLIS);
+		};
 		this.socket.addEventListener('open', () => {
-			this.sendMessage(JSON.stringify({
+			const msg: SubscriberMessage = {
 				msg_type: SubscriberMessageType.Prepare,
 				message: ''
-			} as SubscriberMessage));
+			};
+			this.sendMessage(JSON.stringify(msg));
+			setTimeout(sendPing, PING_INTERVAL_MILLIS);
 		});
 		this.socket.addEventListener('message', async (event: MessageEvent) => {
 
@@ -110,6 +123,10 @@ class ConnectionHandler {
 				const iceCandidate = JSON.parse(message.message);
 				console.debug('Receive ICE candidate: ', iceCandidate);
 				pc.addIceCandidate(iceCandidate);
+				break;
+			}
+			case SubscriberMessageType.Pong: {
+				console.debug('Receive Pong message.');
 				break;
 			}
 			default:
@@ -222,7 +239,6 @@ class ConnectionHandler {
 			// iceTransportPolicy: 'relay'
 		});
 	}
-
 
 	private sendMessage(text: string): void {
 		if (!this.socket) {
