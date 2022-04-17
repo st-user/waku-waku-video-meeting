@@ -227,7 +227,7 @@ class ConnectionHandler {
 			audio: true
 		}).catch(reason => {
 			backToHomeWithDelay(
-				'This application requires to be allow to access camera and microphone. Please review the site settings of your browser and retry.'
+				'This application requires to be allowed to access camera and microphone. Please review the site settings of your browser and retry.'
 			);
 			throw Error(reason);
 		});
