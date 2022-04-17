@@ -177,7 +177,7 @@ function startApp(
 			scene.add(peer);
 
 			const res = myAvatar.toMoveMessage();
-			console.log('Response to hello', res);
+			console.debug('Response to hello', res);
 
 			const dataToSend: HelloResponseMessage = {
 				msgType: MessageType.HelloResponse,

@@ -1,0 +1,25 @@
+version: '2'
+
+services:
+  auth:
+    image: MY_ACCOUNT_ID.dkr.ecr.MY_REGION.amazonaws.com/waku-waku-auth:latest
+    env_file:
+      - ./auth/.env
+  client:
+    image: MY_ACCOUNT_ID.dkr.ecr.MY_REGION.amazonaws.com/waku-waku-client:latest
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - type: bind
+        source: /var/www/certbot
+        target: /var/www/certbot
+      - type: bind
+        source: /etc/letsencrypt
+        target: /etc/letsencrypt
+  db:
+    image: MY_ACCOUNT_ID.dkr.ecr.MY_REGION.amazonaws.com/waku-waku-db:latest
+  sfu:
+    image: MY_ACCOUNT_ID.dkr.ecr.MY_REGION.amazonaws.com/waku-waku-sfu:latest
+    env_file:
+      - ./sfu/.env
