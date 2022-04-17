@@ -1,6 +1,6 @@
 import { reactive } from 'vue';
 import { VideoWindow, VideoModel, MeetingRoomData, MeetingRoomModelHandleHolder } from '../app-data-types';
-
+import { backToHomeWithDelay, handleUnrecoverableError } from '../system';
 
 const SECRET_HEADER_KEY = 'X-W-Chat-Secret';
 
@@ -84,6 +84,9 @@ class ConnectionHandler {
 			this.sendMessage(JSON.stringify(msg));
 			setTimeout(sendPing, PING_INTERVAL_MILLIS);
 		});
+		this.socket.addEventListener('error', handleUnrecoverableError);
+		this.socket.addEventListener('close', handleUnrecoverableError);
+
 		this.socket.addEventListener('message', async (event: MessageEvent) => {
 
 			const message = JSON.parse(event.data) as SubscriberMessage;
@@ -100,7 +103,14 @@ class ConnectionHandler {
 				console.debug('---------------------- offer -----------------------------');
 				console.debug(offer.sdp);
 				console.debug('---------------------- offer -----------------------------');
-				await pc.setRemoteDescription(offer);
+
+				// TODO Resolve:
+				// "Uncaught (in promise) DOMException: Failed to execute 'setRemoteDescription' on 'RTCPeerConnection': Failed to set remote offer sdp: Duplicate a=mid value '2'."
+				//
+				await pc.setRemoteDescription(offer).catch(reason => {
+					handleUnrecoverableError();
+					throw Error(reason);
+				});
 				await pc.setLocalDescription(await pc.createAnswer());
 				// await this.gatherIceCandidate(pc);
 				const answer = pc.localDescription;
@@ -215,6 +225,11 @@ class ConnectionHandler {
 		const stream = await navigator.mediaDevices.getUserMedia({
 			video: true,
 			audio: true
+		}).catch(reason => {
+			backToHomeWithDelay(
+				'This application requires to be allow to access camera and microphone. Please review the site settings of your browser and retry.'
+			);
+			throw Error(reason);
 		});
 
 		
