@@ -11,6 +11,10 @@ Currently, under development.
 
 git clone ...
 
+cp auth/sample.env auth/.env
+cp sfu/sample.env sfu/.env
+# Edit the two '.env' files according to your environment.
+
 ```
 
 ``` bash
@@ -50,6 +54,10 @@ npm run start
 ``` bash
 
 git clone ...
+cp auth/sample.env auth/.env
+cp sfu/sample.env sfu/.env
+# Edit the two '.env' files according to your environment.
+
 
 # on the project's root directory...
 cd auth
@@ -72,6 +80,9 @@ docker-compose up -d
 ``` bash
 
 git clone ...
+cp auth/sample.env auth/.env_prd
+cp sfu/sample.env sfu/.env_prd
+# Edit the two '.env' files according to your environment.
 
 ```
 
