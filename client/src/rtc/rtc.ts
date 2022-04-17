@@ -1,5 +1,5 @@
 import { reactive } from 'vue';
-import { VideoWindow, VideoModel, MeetingRoomData, MeetingRoomModelHandleHolder } from '../app-data-types';
+import { Member, VideoWindow, VideoModel, MeetingRoomData, MeetingRoomModelHandleHolder } from '../app-data-types';
 import { backToHomeWithDelay, handleUnrecoverableError } from '../system';
 
 const SECRET_HEADER_KEY = 'X-W-Chat-Secret';
@@ -38,7 +38,7 @@ class ConnectionHandler {
 	
 	async init(
 		data: MeetingRoomData, 
-		tokenToSend: string,
+		member: Member,
 		modelHandleHolder: MeetingRoomModelHandleHolder,
 		dataChannelSetUpper: (trackId: string, dc: RTCDataChannel) => void): Promise<void> {
 			
@@ -47,11 +47,11 @@ class ConnectionHandler {
 			data.myVideoCssHeight = window.innerHeight * VIDEO_HEIGHT_RATIO; 
 		});		
 
-		const pc = await this.initRTCPeerConnection(data, tokenToSend, modelHandleHolder);
+		const pc = await this.initRTCPeerConnection(data, member, modelHandleHolder);
 
 		const isHttps = location.protocol.startsWith('https:');
 		const scheme = isHttps ? 'wss:' : 'ws:';
-		this.socket = new WebSocket(`${scheme}//${location.host}/ws-app/subscribe/${tokenToSend}`);
+		this.socket = new WebSocket(`${scheme}//${location.host}/ws-app/subscribe/${member.tokenToSend}`);
 
 		pc.addEventListener('icecandidate', (event: RTCPeerConnectionIceEvent) => {
 			this.sendMessage(JSON.stringify({
@@ -147,11 +147,10 @@ class ConnectionHandler {
 
 	private async initRTCPeerConnection(
 		data: MeetingRoomData,
-		tokenToSend: string,
+		member: Member,
 		modelHandleHolder: MeetingRoomModelHandleHolder): Promise<RTCPeerConnection> {
 
-		const iceServers = await fetchIceServers(tokenToSend);
-		const pc = await this.newRTCPeerConnection(iceServers);
+		const pc = await this.newRTCPeerConnection(member);
 
 		pc.ontrack = (event: RTCTrackEvent) => {
 			const mediaStream = event.streams[0];
@@ -186,7 +185,7 @@ class ConnectionHandler {
 					cssHeight: window.innerHeight * VIDEO_HEIGHT_RATIO
 				});
 
-				fetchMemberName(videoId.replace(TRACK_ID_PREF, ''), tokenToSend)
+				fetchMemberName(videoId.replace(TRACK_ID_PREF, ''), member.tokenToSend)
 					.then(({ name }: { name: string }) => {
 						videoWindow.name = name;
 					});
@@ -246,13 +245,37 @@ class ConnectionHandler {
 		return pc;
 	}
 
-	private async newRTCPeerConnection(iceServers: Array<never>): Promise<RTCPeerConnection> {
+	private async newRTCPeerConnection(member: Member): Promise<RTCPeerConnection> {
+		const iceServers = await fetchIceServers(member.tokenToSend);
 
-		console.debug(iceServers);
-		return new RTCPeerConnection({
-			iceServers: iceServers,
-			// iceTransportPolicy: 'relay'
-		});
+		const newIceServers: RTCIceServer[] = [];
+		iceServers.forEach(is => newIceServers.push(is)); 
+
+		if (member.useStableMode) {
+			iceServers.map(iceServer => {
+				const urls = iceServer.urls;
+				let newUrls: string | string[] = '';
+				if (typeof urls === 'string') {
+					newUrls = `${urls}?transport=tcp`;
+				} else {
+					newUrls = urls.map(u => `${u}?transport=tcp`);
+				}
+				return {
+					urls: newUrls,
+					username: iceServer.username,
+					credential: iceServer.credential,
+					credentialType: iceServer.credentialType
+				} as RTCIceServer;
+			}).forEach(is => newIceServers.push(is));
+		}
+		const iceTransportPolicy = member.useStableMode ? 'relay' : 'all';
+		const config = {
+			iceServers: newIceServers,
+			iceTransportPolicy,
+		} as RTCConfiguration;
+
+		console.debug(newIceServers);
+		return new RTCPeerConnection(config);
 	}
 
 	private sendMessage(text: string): void {
@@ -272,12 +295,12 @@ async function fetchMemberName(peerId: string, tokenToSend): Promise<{ name: str
 	}).then(res => res.json()) as { name: string };	
 }
 
-async function fetchIceServers(tokenToSend: string): Promise<Array<never>> {
+async function fetchIceServers(tokenToSend: string): Promise<Array<RTCIceServer>> {
 	return await fetch('/app/ice-servers', {
 		headers: {
 			[SECRET_HEADER_KEY]: tokenToSend
 		}
-	}).then(res => res.json()) as Array<never>;
+	}).then(res => res.json()) as Array<RTCIceServer>;
 }
 
 export {

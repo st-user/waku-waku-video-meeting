@@ -30,6 +30,12 @@
 					{{ memberNameErr }}
 				</div>
 			</div>
+			<div class="mb-3">
+				<label>
+				<input type="checkbox" v-model="useStableMode"/>
+				use stable mode (recommended in enterprise intra net)
+				</label>
+			</div>
 			<div class="command-button mb-5">
 				<button
 					type="button"
@@ -87,6 +93,7 @@ interface DataType {
 	roomKeyErr: string | undefined,
 	memberName: string,
 	memberNameErr: string | undefined
+	useStableMode: boolean,
 	auth0User: User,
 	roomName: string,
 	roomNameErr: string | undefined,
@@ -135,6 +142,7 @@ const App = defineComponent({
 			roomKeyErr: undefined,
 			memberName: '',
 			memberNameErr: undefined,
+			useStableMode: false,
 			auth0User: this.$auth0.user,
 			isAuthenticated: this.$auth0.isAuthenticated,
 			roomName: '',
@@ -169,7 +177,8 @@ const App = defineComponent({
 						roomId: result.member.room_id,
 						memberName: result.member.member_name,
 						secretToken: result.member.secret_token,
-						tokenToSend: result.member.token_to_send
+						tokenToSend: result.member.token_to_send,
+						useStableMode: this.useStableMode,
 					};
 				}
 			});

@@ -143,7 +143,7 @@ const App = defineComponent({
 			this.state = AppState.Started;
 			this.connectionHandler.init(
 				this,
-				this.$appData.member?.tokenToSend,
+				this.$appData.member,
 				this.modelHandleHolder,
 				(trackId: string, dc: RTCDataChannel) => {
 					startAvatarScene(

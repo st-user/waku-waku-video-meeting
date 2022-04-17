@@ -8,6 +8,7 @@ interface Member {
     memberName: string
     secretToken: string,
 	tokenToSend: string
+	useStableMode: boolean
 }
 
 enum AppState {
