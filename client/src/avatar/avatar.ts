@@ -1,7 +1,7 @@
 import { CanvasProps, BaseSceneObject, Vector } from './graphic';
 import { reactive } from 'vue';
 import { AvatarDirection, MessageType ,MoveMessage } from './messaging';
-import { AvatarModel } from '../app-data-types';
+import { AvatarModel, AvatarState } from '../app-data-types';
 
 const SPRITE_UNIT_WIDTH = 16;
 const SPRITE_UNIT_HEIGHT = 18;
@@ -12,7 +12,6 @@ const SPRITE_IMAGE_WIDTH = SPRITE_UNIT_WIDTH * SPRITE_SCALE;
 const SPRITE_IMAGE_HEIGHT = SPRITE_UNIT_HEIGHT * SPRITE_SCALE;
 
 const AVATAR_NAME_FONT_SIZE = 24;
-
 
 
 class AvatarModelUtil {
@@ -31,7 +30,8 @@ class AvatarModelUtil {
 			id, name,
 			top: top - AVATAR_NAME_FONT_SIZE,
 			left,
-			talking: false
+			talking: false,
+			state: AvatarState.Playing
 		});
 	}
 }

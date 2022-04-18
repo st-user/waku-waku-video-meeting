@@ -5,10 +5,19 @@
 				<canvas ref="mainCanvas" class="main-scene"
 					:style="{ width: String(canvasCssWidth) + 'px', height: String(canvasCssHeight) + 'px' }" width="800"
 					height="400"></canvas>
-				<div v-for="am in avatars" :key="am.id" class="avatar-name-tooltip"
-					:style="{ top: String(am.top) + 'px', left: String(am.left) + 'px' }">
-					{{ am.name }}
-				</div>
+				<template v-for="am in avatars" :key="am.id">
+					<div  class="avatar-name-tooltip"
+						:style="{ top: String(am.top) + 'px', left: String(am.left) + 'px' }">
+						{{ am.name }}
+						<div>
+							<progress 
+								v-if="am.state === 'Leaving'"
+								class="progress is-danger avatar-state-checking"
+								max="100">
+							</progress>
+						</div>
+					</div>
+				</template>
 			</div>
 		</section>
 		<section class="video-container">
@@ -32,6 +41,7 @@ import { defineComponent } from 'vue';
 import {
 	AppState,
 	AvatarModel,
+	AvatarState,
 	MeetingRoomData,
 	MeetingRoomModelHandle,
 	MeetingRoomModelHandleHolder,
@@ -100,6 +110,24 @@ class MeetingRoomModelHandleHolderImpl implements MeetingRoomModelHandleHolder {
 		if (handle.videoModel) {
 			handle.videoModel.videoWindow.isDisplayed = !muted;
 			handle.videoModel.audio.muted = muted;
+		}
+	}
+
+	leave(id: string): void {
+		this.changeAvatarState(id, AvatarState.Leaving);
+	}
+
+	play(id: string): void {
+		this.changeAvatarState(id, AvatarState.Playing);
+	}
+
+	private changeAvatarState(id: string, state: AvatarState): void {
+		const handle = this.handles.get(id);
+		if (!handle) {
+			return;
+		}
+		if (handle.avatarModel) {
+			handle.avatarModel.state = state;
 		}
 	}
 
@@ -188,6 +216,13 @@ export default App;
 	font-family: Comic Sans MS;
 	color: rgba(33, 31, 31, 0.741);
 	text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.943);
+}
+
+.avatar-state-checking {
+	position: absolute;
+	z-index: 100;
+	height: 6px;
+	width: 60px;
 }
 
 .main-scene {

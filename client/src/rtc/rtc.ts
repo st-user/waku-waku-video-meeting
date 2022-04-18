@@ -24,6 +24,7 @@ interface SubscriberMessage {
 
 const VIDEO_HEIGHT_RATIO = 0.25;
 const PING_INTERVAL_MILLIS = 3000;
+const WAIT_BEFORE_REMOVAL_MILLIS = 5000;
 
 class ConnectionHandler {
 	
@@ -204,20 +205,30 @@ class ConnectionHandler {
 
 				data.videos.push(videoWindow);
 
+				let removeTimer;
+				event.track.onunmute = () => {
+					console.debug(`unmute ${videoId}`);
+					modelHandleHolder.play(videoId);
+					clearTimeout(removeTimer);
+				};
 				event.track.onmute = () => {
-					console.debug(`mute ${videoId}`);
-					for (let i = 0; data.videos.length; i++) {
-						const video = data.videos[i];
-						if (!video) {
-							continue;
+					modelHandleHolder.leave(videoId);
+
+					removeTimer = setTimeout(() => {
+						console.debug(`mute ${videoId}`);
+						for (let i = 0; data.videos.length; i++) {
+							const video = data.videos[i];
+							if (!video) {
+								continue;
+							}
+							if (videoId === video.id) {
+								console.debug(`Remove the video whose index is ${i}`);
+								data.videos.splice(i, 1);
+								break;
+							}
 						}
-						if (videoId === video.id) {
-							console.debug(`Remove the video whose index is ${i}`);
-							data.videos.splice(i, 1);
-							break;
-						}
-					}
-					modelHandleHolder.delete(videoId);
+						modelHandleHolder.delete(videoId);
+					}, WAIT_BEFORE_REMOVAL_MILLIS);
 				};
 			}
 		};

@@ -30,12 +30,18 @@ interface VideoModel {
 	audio: HTMLAudioElement,
 }
 
+enum AvatarState {
+	Playing = 'Playing',
+	Leaving = 'Leaving'
+}
+
 interface AvatarModel {
 	top: number,
 	left: number,
 	readonly id: string,
 	readonly name: string,
-	talking: boolean
+	talking: boolean,
+	state: AvatarState
 }
 
 interface MeetingRoomData {
@@ -61,6 +67,8 @@ interface MeetingRoomModelHandleHolder {
 	getAvatar(id: string): AvatarModel | undefined,
 	mute(id: string): void,
 	unmute(id: string): void,
+	leave(id: string): void,
+	play(id: string): void,
 	delete(id: string): void,
 	onDelete(f: (id: string) => void)
 }
@@ -72,6 +80,7 @@ export {
 	AppState,
 	VideoWindow,
 	VideoModel,
+	AvatarState,
 	AvatarModel,
 	MeetingRoomModelHandle,
 	MeetingRoomModelHandleHolder
