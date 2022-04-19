@@ -5,11 +5,23 @@ services:
     image: MY_ACCOUNT_ID.dkr.ecr.MY_REGION.amazonaws.com/waku-waku-auth:latest
     env_file:
       - ./auth/.env
+    logging:
+      driver: "awslogs"
+      options:
+        awslogs-region: "MY_REGION"
+        awslogs-group: "waku-waku-log-group"
+        awslogs-stream: "auth-stream"
   client:
     image: MY_ACCOUNT_ID.dkr.ecr.MY_REGION.amazonaws.com/waku-waku-client:latest
     ports:
       - 80:80
       - 443:443
+    logging:
+      driver: "awslogs"
+      options:
+        awslogs-region: "MY_REGION"
+        awslogs-group: "waku-waku-log-group"
+        awslogs-stream: "nginx-stream"
     volumes:
       - type: bind
         source: /var/www/certbot
@@ -19,7 +31,19 @@ services:
         target: /etc/letsencrypt
   db:
     image: MY_ACCOUNT_ID.dkr.ecr.MY_REGION.amazonaws.com/waku-waku-db:latest
+    logging:
+      driver: "awslogs"
+      options:
+        awslogs-region: "MY_REGION"
+        awslogs-group: "waku-waku-log-group"
+        awslogs-stream: "db-stream"
   sfu:
     image: MY_ACCOUNT_ID.dkr.ecr.MY_REGION.amazonaws.com/waku-waku-sfu:latest
     env_file:
       - ./sfu/.env
+    logging:
+      driver: "awslogs"
+      options:
+        awslogs-region: "MY_REGION"
+        awslogs-group: "waku-waku-log-group"
+        awslogs-stream: "sfu-stream"

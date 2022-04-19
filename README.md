@@ -126,6 +126,16 @@ aws ecr create-repository \
 
 ```
 
+#### Create log groups on Cloud Watch (On your PC)
+
+``` bash
+
+MY_REGION=.... # Input region to use
+
+aws logs create-log-group --log-group-name waku-waku-log-group --region ${MY_REGION}
+
+```
+
 #### Build images (On your PC)
 
 ``` bash
@@ -177,6 +187,7 @@ scp -i ...(path to your ssh key file) waku-waku-video-meeting.tar.gz your_user_n
  - Install Docker and Docker compose.
  - Configure AWS CLI to make it possible to pull docker images from ECR repositories.
  - Get Let's Encrypt certificate for your domain.
+ - Attach an IAM role to the EC2 instance so that it can access to Cloud Watch([see](https://stackoverflow.com/questions/42951444/aws-cloudwatch-logs-with-docker-container-nocredentialproviders-no-valid-prov)).
 
 
 ####  Run on EC2 instance (On EC2 instance)
@@ -191,6 +202,8 @@ MY_REGION=.... # Input region to use
 # You may have to use 'sudo' depending on your settings.
 
 # You may have to specify '--profile' depending on your AWS CLI configuration.
+
+# login to Docker registry
 aws ecr get-login-password --region ${MY_REGION} --profile ecr | docker login --username AWS --password-stdin ${MY_ACCOUNT_ID}.dkr.ecr.${MY_REGION}.amazonaws.com
 
 tar -xvzf waku-waku-video-meeting.tar.gz 
