@@ -21,7 +21,7 @@ cp sfu/sample.env sfu/.env
 # on the project's root directory...
 cd db
 docker build -t waku-waku-db .
-docker run -it -d -p 5555:5432 --name waku-waku-db waku-waku-db
+docker run --rm -it -d -p 5555:5432 --name waku-waku-db waku-waku-db
 ```
 
 Open another terminal and:
@@ -82,7 +82,8 @@ docker-compose up -d
 git clone ...
 cp auth/sample.env auth/.env_prd
 cp sfu/sample.env sfu/.env_prd
-# Edit the two '.env' files according to your environment.
+cp client/nginx-aws/conf.d/proxy.sample_conf client/nginx-aws/conf.d/proxy.conf 
+# Edit the two '.env' files and the proxy.conf according to your environment.
 
 ```
 
@@ -142,6 +143,7 @@ aws logs create-log-group --log-group-name waku-waku-log-group --region ${MY_REG
 
 MY_ACCOUNT_ID=.... # Input your aws account id.
 MY_REGION=.... # Input region to use
+MY_PLATFORM=.... # Input your target platform (e.g. linux/arm64, linux/amd64)
 
 # Login
 aws ecr get-login-password --region ${MY_REGION} | docker login --username AWS --password-stdin ${MY_ACCOUNT_ID}.dkr.ecr.${MY_REGION}.amazonaws.com
@@ -150,21 +152,24 @@ aws ecr get-login-password --region ${MY_REGION} | docker login --username AWS -
 
 # auth
 cd auth
-docker buildx build --platform linux/arm64 -t ${MY_ACCOUNT_ID}.dkr.ecr.${MY_REGION}.amazonaws.com/waku-waku-auth:latest --push .
+docker buildx build --platform ${MY_PLATFORM} -t ${MY_ACCOUNT_ID}.dkr.ecr.${MY_REGION}.amazonaws.com/waku-waku-auth:latest --push .
 
 # client
 cd ../client
-docker buildx build --platform linux/arm64 -t ${MY_ACCOUNT_ID}.dkr.ecr.${MY_REGION}.amazonaws.com/waku-waku-client:latest -f nginx-aws/Dockerfile --push .
+docker buildx build --platform ${MY_PLATFORM} -t ${MY_ACCOUNT_ID}.dkr.ecr.${MY_REGION}.amazonaws.com/waku-waku-client:latest -f nginx-aws/Dockerfile --push .
 
 # db
 cd ../db
-docker buildx build --platform linux/arm64 -t ${MY_ACCOUNT_ID}.dkr.ecr.${MY_REGION}.amazonaws.com/waku-waku-db:latest --push .
+docker buildx build --platform ${MY_PLATFORM} -t ${MY_ACCOUNT_ID}.dkr.ecr.${MY_REGION}.amazonaws.com/waku-waku-db:latest --push .
 
 # sfu
 cd ../sfu
-docker buildx build --platform linux/arm64 -t ${MY_ACCOUNT_ID}.dkr.ecr.${MY_REGION}.amazonaws.com/waku-waku-sfu:latest --push .
+docker buildx build --platform ${MY_PLATFORM} -t ${MY_ACCOUNT_ID}.dkr.ecr.${MY_REGION}.amazonaws.com/waku-waku-sfu:latest --push .
 
 ```
+
+
+ - [Leverage multi-CPU architecture support - docker docs](https://docs.docker.com/desktop/multi-arch/)
 
 
 #### Send environment files to EC2 instance (On your PC)
@@ -208,6 +213,22 @@ aws ecr get-login-password --region ${MY_REGION} --profile ecr | docker login --
 
 tar -xvzf waku-waku-video-meeting.tar.gz 
 cd waku-waku-video-meeting/
+# If the services are running, you have to stop them.
+# docker compose down
+docker compose pull # To use the latest images when the local repository already has old images.
 docker compose up -d
+
+# If you want to delete unused(old) images
+# docker image prune -f
+
+```
+
+Also you can restart a single container like the following:
+
+([How to restart a single container with docker-compose - stack overflow](https://stackoverflow.com/questions/31466428/how-to-restart-a-single-container-with-docker-compose))
+
+``` bash
+
+docker compose pull client && docker-compose up -d --no-deps client
 
 ```
