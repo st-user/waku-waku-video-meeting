@@ -247,6 +247,10 @@ class ConnectionHandler {
 		if (!myVideo) {
 			throw Error('Video track does not exist.');
 		}
+		myVideo.onended = () => console.debug('My video ended.');
+		myVideo.onmute = () => console.debug('My video muted.');
+		myVideo.onunmute = () => console.debug('My video unmuted.');
+
 		data.srcObject = new MediaStream( [ myVideo ]);
 		
 
