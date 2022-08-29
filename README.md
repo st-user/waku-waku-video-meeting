@@ -1,7 +1,10 @@
 # waku-waku-video-meeting
-Video chat with 2D avatar
 
-Currently, under development.
+Video chat with 2D avatar (WebRTC)
+
+
+![overview](./etc/images/overview.png)
+
 
 ## How to run
 
